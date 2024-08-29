@@ -29,11 +29,7 @@
 				// User is signed in, redirect to dashboard
 				// Retrieve user type
 				const userInfo = await getUserInfo(user.uid);
-				if (userInfo.userType === 'business') {
-					goto('/business');
-				} else if (userInfo.userType === 'influencer') {
-					goto('/influencer');
-				}
+				goto('/users');
 			} else {
 				// User is not signed in, stay on the current page or redirect elsewhere if needed
 			}

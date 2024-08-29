@@ -1,8 +1,7 @@
 <script>
-    import SignUpForm from "../../lib/components/SignUpForm.svelte";
+	import SignUpForm from '../../lib/components/SignUpForm.svelte';
 </script>
-  
+
 <main>
-    <SignUpForm />
+	<SignUpForm />
 </main>
-  

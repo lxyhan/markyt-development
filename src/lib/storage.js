@@ -1,7 +1,7 @@
 import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 
 // Initialize Firebase Storage
-const storage = getStorage();
+export const storage = getStorage();
 
 export const uploadProfilePicture = async (userId, file, fileType) => {
 	try {

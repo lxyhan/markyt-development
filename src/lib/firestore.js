@@ -7,42 +7,44 @@ import {
 	query,
 	where,
 	getDoc,
-	getDocs
+	getDocs,
+	writeBatch
 } from 'firebase/firestore';
 import { db } from '$lib/firebase.js';
 
+// Fetch user information with optimized structure
+// Fetch user information with optimized structure
 export const getUserInfo = async (userId) => {
 	try {
 		const userDoc = await getDoc(doc(db, 'users', userId));
-		if (userDoc.exists()) {
-			const userInfo = userDoc.data();
-			if (userInfo.userType === 'business') {
-				// Get business-specific info
-				const businessInfoDoc = await getDoc(doc(db, 'users', userId, 'businessInfo', 'details'));
-				return {
-					...userInfo,
-					businessInfo: businessInfoDoc.exists() ? businessInfoDoc.data() : null
-				};
-			} else if (userInfo.userType === 'influencer') {
-				// Get influencer-specific info
-				const influencerInfoDoc = await getDoc(
-					doc(db, 'users', userId, 'influencerInfo', 'details')
-				);
-				return {
-					...userInfo,
-					influencerInfo: influencerInfoDoc.exists() ? influencerInfoDoc.data() : null
-				};
-			}
-			return userInfo; // Return basic info if no subcollection exists
-		} else {
+		if (!userDoc.exists()) {
 			throw new Error('No user found with the given ID');
 		}
+
+		const userInfo = userDoc.data();
+		let specificInfo = null;
+
+		if (userInfo.userType === 'business') {
+			const businessInfoDoc = await getDoc(doc(db, 'users', userId, 'businessInfo', 'details'));
+			specificInfo = businessInfoDoc.exists() ? businessInfoDoc.data() : {}; // Return an empty object if not found
+		} else if (userInfo.userType === 'influencer') {
+			const influencerInfoDoc = await getDoc(doc(db, 'users', userId, 'influencerInfo', 'details'));
+			specificInfo = influencerInfoDoc.exists() ? influencerInfoDoc.data() : {}; // Return an empty object if not found
+		}
+
+		return {
+			...userInfo,
+			// Ensuring the specific info object is returned even if it's empty
+			...(userInfo.userType === 'business' ? { businessInfo: specificInfo } : {}),
+			...(userInfo.userType === 'influencer' ? { influencerInfo: specificInfo } : {})
+		};
 	} catch (error) {
 		console.error('Error retrieving user info:', error);
 		throw error;
 	}
 };
 
+// Edit user information more efficiently
 export const editUserInfo = async (userId, userInfo) => {
 	const userRef = doc(db, 'users', userId);
 
@@ -62,7 +64,8 @@ export const editUserInfo = async (userId, userInfo) => {
 				postalCode: userInfo.postalCode,
 				profilePicture: userInfo.profilePicture,
 				bannerPicture: userInfo.bannerPicture,
-				createdAt: userInfo.createdAt || new Date().toISOString()
+				createdAt: userInfo.createdAt || new Date().toISOString(),
+				userType: userInfo.userType // Ensure the userType is saved
 			},
 			{ merge: true }
 		);
@@ -73,9 +76,8 @@ export const editUserInfo = async (userId, userInfo) => {
 			await setDoc(
 				influencerRef,
 				{
-					socialMediaHandles: userInfo.socialMediaHandles,
-					niche: userInfo.niche
-					// Add any additional influencer-specific fields here
+					socialMediaHandles: userInfo.influencerInfo.socialMediaHandles,
+					niche: userInfo.influencerInfo.niche
 				},
 				{ merge: true }
 			);
@@ -84,17 +86,17 @@ export const editUserInfo = async (userId, userInfo) => {
 
 		// Handle business-specific information if the user is a business
 		if (userInfo.userType === 'business') {
+			console.log('passed');
 			const businessRef = doc(db, 'users', userId, 'businessInfo', 'details');
 			await setDoc(
 				businessRef,
 				{
-					website: userInfo.website, // Assuming website is the correct field for business
-					niche: userInfo.niche
-					// Add any additional business-specific fields here
+					website: userInfo.businessInfo.website, // If 'website' field is used
+					niche: userInfo.businessInfo.niche
 				},
 				{ merge: true }
 			);
-			console.log('Updated business info:', userInfo.website, userInfo.niche);
+			console.log('Updated business info:', userInfo.socialMediaHandles, userInfo.niche);
 		}
 
 		console.log('User information updated successfully');
@@ -104,72 +106,95 @@ export const editUserInfo = async (userId, userInfo) => {
 	}
 };
 
-export const getInfluencers = async (filters = {}) => {
+// Get matched influencers or businesses
+export const getMatches = async (userType, filters = {}) => {
 	try {
 		// Reference to the users collection
 		const usersRef = collection(db, 'users');
+		let q = query(usersRef, where('userType', '==', userType));
 
-		// Build query to find all influencers
-		let q = query(usersRef, where('userType', '==', 'influencer'));
+		// Apply filters
+		if (filters.niche) q = query(q, where('niche', '==', filters.niche));
+		if (filters.location) q = query(q, where('location', '==', filters.location));
+		if (filters.minFollowers) q = query(q, where('followers', '>=', filters.minFollowers));
 
-		// Execute the query to get influencer users
-		const userSnapshot = await getDocs(q);
-		console.log('User Snapshot:', userSnapshot.docs);
+		// Execute the query to get matched users
+		const snapshot = await getDocs(q);
+		const matches = snapshot.docs.map((doc) => ({
+			id: doc.id,
+			...doc.data()
+		}));
 
-		// Array to hold influencer data
-		const influencers = [];
+		// console.log('Matches:', matches);
+		return matches;
+	} catch (error) {
+		// console.error('Error fetching matches:', error);
+		throw error;
+	}
+};
 
-		// Loop through each influencer user document
-		for (const userDoc of userSnapshot.docs) {
-			const userId = userDoc.id;
+// Create matches for a business if none exist
+export const createMatches = async (businessId) => {
+	try {
+		const businessRef = doc(db, 'users', businessId);
+		const businessDoc = await getDoc(businessRef);
+		const influencers = await getMatches('influencer');
 
-			// Log the current user ID being processed
-			console.log(`Processing influencer with user ID: ${userId}`);
+		// Assuming we are just picking the first three influencers for simplicity
+		const selectedInfluencers = influencers.slice(0, 3);
 
-			// Reference to the InfluencerInfo subcollection
-			const influencerInfoRef = collection(db, `users/${userId}/influencerInfo`);
-			const influencerInfoSnapshot = await getDocs(influencerInfoRef);
+		// Save the matches
+		const matchesRef = collection(db, 'users', businessId, 'matches');
+		const batch = writeBatch(db);
 
-			// Log the InfluencerInfo snapshot
-			console.log('Influencer Info Snapshot:', influencerInfoSnapshot.docs);
+		selectedInfluencers.forEach((influencer) => {
+			const matchRef = doc(matchesRef, influencer.id);
+			batch.set(matchRef, influencer);
+		});
 
-			// If the influencer has data in the InfluencerInfo subcollection, filter it
-			influencerInfoSnapshot.forEach((doc) => {
-				let influencerData = doc.data();
-				console.log('Raw Influencer Data:', influencerData);
+		// Commit batch
+		await batch.commit();
 
-				// Apply filters if provided
-				if (filters.niche && influencerData.niche !== filters.niche) {
-					console.log('Niche filter did not match:', influencerData.niche);
-					return;
+		// console.log('Created matches:', selectedInfluencers);
+		return selectedInfluencers;
+	} catch (error) {
+		console.error('Error creating matches:', error);
+		throw error;
+	}
+};
+
+export const getInfluencerMatches = async (influencerId) => {
+	try {
+		// Step 1: Get all businesses
+		const usersRef = collection(db, 'users');
+		const q = query(usersRef, where('userType', '==', 'business'));
+		const businessSnapshot = await getDocs(q);
+
+		const matchedBusinesses = [];
+
+		// Step 2: Loop through businesses and check matches sub-collection
+		for (const businessDoc of businessSnapshot.docs) {
+			const matchesRef = collection(db, 'users', businessDoc.id, 'matches');
+			const matchesSnapshot = await getDocs(matchesRef);
+
+			// console.log(
+			// 	'Matches for Business:',
+			// 	businessDoc.id,
+			// 	matchesSnapshot.docs.map((doc) => doc.data())
+			// );
+
+			for (const matchDoc of matchesSnapshot.docs) {
+				if (matchDoc.id === influencerId) {
+					matchedBusinesses.push({ id: businessDoc.id, ...businessDoc.data() });
+					break; // No need to check further once a match is found
 				}
-				if (filters.minFollowers && influencerData.followers < filters.minFollowers) {
-					console.log('Min Followers filter did not match:', influencerData.followers);
-					return;
-				}
-				if (filters.location && influencerData.location !== filters.location) {
-					console.log('Location filter did not match:', influencerData.location);
-					return;
-				}
-
-				// Log the data that passed the filters
-				console.log('Filtered Influencer Data:', influencerData);
-
-				// Merge influencer data with basic user info
-				influencers.push({
-					id: userId,
-					...userDoc.data(),
-					...influencerData
-				});
-			});
+			}
 		}
 
-		// Log the final influencers array
-		console.log('Final Influencers Array:', influencers);
-
-		return influencers;
+		console.log('Matched Businesses:', matchedBusinesses);
+		return matchedBusinesses;
 	} catch (error) {
-		console.error('Error fetching influencers:', error);
+		console.error('Error fetching influencer matches:', error);
 		throw error;
 	}
 };

@@ -33,7 +33,7 @@
 						...fetchedUserInfo,
 						uid: user.uid,
 						email: user.email,
-						socialMediaHandles: fetchedUserInfo.influencerInfo?.socialMediaHandles,
+						socialMediaHandles: fetchedUserInfo.influencerInfo.socialMediaHandles,
 						niche: fetchedUserInfo.influencerInfo?.niche,
 						profileComplete: fetchedUserInfo.profileComplete ?? false
 					});
@@ -69,7 +69,7 @@
 					bannerPicture: previewUrl
 				}));
 			}
-			console.log('Updated userInfo:', get(userInfo)); // Debugging line
+			// console.log('Updated userInfo:', get(userInfo)); // Debugging line
 		}
 	};
 
@@ -83,9 +83,12 @@
 	// Save function to send data to Firebase
 	const handleSaveProfile = async () => {
 		try {
-			loading = true; // Start loading before save operation
+			// Start loading indication
+			loading = true;
+			// console.log('Save button clicked');
 
-			let updatedUserInfo = get(userInfo); // Get the current userInfo data from the store
+			// Get current user info
+			let updatedUserInfo = get(userInfo);
 
 			// Check if there's a new profile picture to upload
 			if (file && fileType === 'profilePicture') {
@@ -110,27 +113,27 @@
 			userInfo.set(updatedUserInfo);
 
 			// Save the updated userInfo to Firestore
-			await editUserInfo(updatedUserInfo.uid, updatedUserInfo); // Pass the updated userInfo object to Firebase
-
-			console.log('Profile saved successfully:', updatedUserInfo);
+			await editUserInfo(updatedUserInfo.uid, updatedUserInfo);
+			// console.log('Profile saved successfully:', updatedUserInfo);
 		} catch (error) {
 			console.error('Error saving profile:', error);
 		} finally {
-			loading = false; // Stop loading after save operation
+			// Stop loading indication
+			loading = false;
 		}
 	};
 
 	const handleEditClick = () => {
 		userInfo.update((info) => ({ ...info, profileComplete: false }));
 	};
+	// console.log($userInfo);
 </script>
 
 <div>
 	{#if loading}
 		<!-- Display a loading spinner or animation -->
-		<div class="loading-spinner">
-			<!-- Example: A simple CSS spinner -->
-			<div class="spinner"></div>
+		<div class="flex justify-center items-center h-screen">
+			<span class="loading loading-spinner loading-xl text-emerald-600"></span>
 		</div>
 	{:else}
 		<!-- Your main content goes here -->
@@ -179,7 +182,7 @@
 									d="M10.5 1.5H8.25A2.25 2.25 0 0 0 6 3.75v16.5a2.25 2.25 0 0 0 2.25 2.25h7.5A2.25 2.25 0 0 0 18 20.25V3.75a2.25 2.25 0 0 0-2.25-2.25H13.5m-3 0V3h3V1.5m-3 0h3m-3 18.75h3"
 								/>
 							</svg>
-							{$userInfo.socialMediaHandles}
+							{$userInfo.influencerInfo.socialMediaHandles}
 						</div>
 						<div class="mt-2 flex items-center text-sm text-gray-500">
 							<svg
@@ -230,7 +233,7 @@
 								/>
 							</svg>
 
-							{' Niche: ' + $userInfo.niche}
+							{' Niche: ' + $userInfo.influencerInfo.niche}
 						</div>
 					</div>
 				</div>
@@ -367,13 +370,13 @@
 			</div>
 
 			{#if !$userInfo.profileComplete}
-				<div class="py-20 pl-10 pr-10 content">
+				<div class="py-20 pl-10 pr-10 content" style="margin-top: 125px">
 					<h1
 						class="text-1xl font-bold leading-7 text-gray-900 sm:truncate sm:text-2xl sm:tracking-tight pb-2"
 					>
 						Editing your profile
 					</h1>
-					<form on:submit={handleSaveProfile}>
+					<form on:submit|preventDefault={handleSaveProfile}>
 						<div class="space-y-12">
 							<div class="border-b border-gray-900/10 pb-12">
 								<h2 class="text-base font-semibold leading-7 text-gray-900">Profile</h2>
@@ -464,7 +467,7 @@
 											</label>
 											<button
 												type="button"
-												class="rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500"
+												class="rounded-md bg-emerald-700 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500"
 												on:click={() => triggerFileInput('bannerPicture')}
 											>
 												Change Cover Photo
@@ -495,7 +498,7 @@
 											<input
 												type="text"
 												required
-												bind:value={$userInfo.socialMediaHandles}
+												bind:value={$userInfo.influencerInfo.socialMediaHandles}
 												class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
 											/>
 										</div>
@@ -507,7 +510,7 @@
 										>
 										<div class="mt-2">
 											<select
-												bind:value={$userInfo.niche}
+												bind:value={$userInfo.influencerInfo.niche}
 												id="country"
 												name="country"
 												required
@@ -580,7 +583,7 @@
 								<!-- <button type="button" class="text-sm font-semibold leading-6 text-gray-900">Cancel</button> -->
 								<button
 									type="submit"
-									class="rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+									class="rounded-md bg-emerald-700 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
 									>Save</button
 								>
 							</div>
@@ -594,39 +597,13 @@
 
 <style>
 	.fixed-header {
-		position: fixed;
+		position: fixed !important;
 		top: 0;
 		left: 0;
 		width: 100%;
 		background-color: white;
-		z-index: 1000; /* Ensure it's above other content */
+		z-index: 1000;
 		padding: 10px;
-		box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Optional: adds a shadow for a floating effect */
-	}
-
-	.content {
-		padding-top: 150px; /* Add margin equal to the height of the fixed header to avoid overlap */
-	}
-
-	.loading-spinner {
-		display: flex;
-		justify-content: center;
-		align-items: center;
-		height: 100vh; /* Fullscreen height */
-	}
-
-	.spinner {
-		border: 4px solid rgba(0, 0, 0, 0.1);
-		border-left-color: #0a7e6a; /* Example color */
-		border-radius: 50%;
-		width: 40px;
-		height: 40px;
-		animation: spin 1s linear infinite;
-	}
-
-	@keyframes spin {
-		to {
-			transform: rotate(360deg);
-		}
+		box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 	}
 </style>
