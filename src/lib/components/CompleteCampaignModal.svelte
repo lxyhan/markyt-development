@@ -2,11 +2,12 @@
 	export let onClose;
 	export let onSubmit;
 
-	let rating = 5;
-	let earnings = '';
-	let review = '';
+	let rating;
+	let NewEarnings;
+	let review;
+	let NewPosts;
 	const handleSubmit = () => {
-		onSubmit({ rating, earnings, review });
+		onSubmit({ rating, NewEarnings, review, NewPosts });
 		console.log('Trying to close modal'); // Debugging line
 		onClose(); // Close the modal after submission
 	};
@@ -38,6 +39,18 @@
 			</div>
 
 			<div class="mt-4">
+				<label for="rating" class="block text-sm font-medium text-gray-700">Number of Posts</label>
+				<input
+					id="rating"
+					type="number"
+					min="1"
+					max="5"
+					bind:value={NewPosts}
+					class="mt-1 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
+				/>
+			</div>
+
+			<div class="mt-4">
 				<label for="rating" class="block text-sm font-medium text-gray-700">Rating</label>
 				<input
 					id="rating"
@@ -54,7 +67,7 @@
 				<input
 					id="earnings"
 					type="text"
-					bind:value={earnings}
+					bind:value={NewEarnings}
 					class="mt-1 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
 				/>
 			</div>

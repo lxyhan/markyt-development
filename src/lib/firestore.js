@@ -65,7 +65,13 @@ export const editUserInfo = async (userId, userInfo) => {
 				profilePicture: userInfo.profilePicture,
 				bannerPicture: userInfo.bannerPicture,
 				createdAt: userInfo.createdAt || new Date().toISOString(),
-				userType: userInfo.userType // Ensure the userType is saved
+				userType: userInfo.userType, // Ensure the userType is saved
+				ratings: userInfo.ratings || [],
+				earnings: userInfo.earnings || 0,
+				numPosts: userInfo.numPosts || 0,
+				reviews: userInfo.reviews || [],
+				earningsHistory: userInfo.earningsHistory || [],
+				postsHistory: userInfo.postsHistory || []
 			},
 			{ merge: true }
 		);
@@ -73,30 +79,33 @@ export const editUserInfo = async (userId, userInfo) => {
 		// Handle influencer-specific information if the user is an influencer
 		if (userInfo.userType === 'influencer') {
 			const influencerRef = doc(db, 'users', userId, 'influencerInfo', 'details');
-			await setDoc(
-				influencerRef,
-				{
-					socialMediaHandles: userInfo.influencerInfo.socialMediaHandles,
-					niche: userInfo.influencerInfo.niche
-				},
-				{ merge: true }
-			);
-			console.log('Updated influencer info:', userInfo.socialMediaHandles, userInfo.niche);
+			if (userInfo.influencerInfo) {
+				await setDoc(
+					influencerRef,
+					{
+						socialMediaHandles: userInfo.influencerInfo.socialMediaHandles ?? '',
+						niche: userInfo.influencerInfo.niche ?? ''
+					},
+					{ merge: true }
+				);
+			}
+			console.log('Updated influencer info:', userInfo.influencerInfo);
 		}
 
 		// Handle business-specific information if the user is a business
 		if (userInfo.userType === 'business') {
-			console.log('passed');
 			const businessRef = doc(db, 'users', userId, 'businessInfo', 'details');
-			await setDoc(
-				businessRef,
-				{
-					website: userInfo.businessInfo.website, // If 'website' field is used
-					niche: userInfo.businessInfo.niche
-				},
-				{ merge: true }
-			);
-			console.log('Updated business info:', userInfo.socialMediaHandles, userInfo.niche);
+			if (userInfo.businessInfo) {
+				await setDoc(
+					businessRef,
+					{
+						website: userInfo.businessInfo.website ?? '',
+						niche: userInfo.businessInfo.niche ?? ''
+					},
+					{ merge: true }
+				);
+			}
+			console.log('Updated business info:', userInfo.businessInfo);
 		}
 
 		console.log('User information updated successfully');

@@ -5,11 +5,13 @@
 	import CompleteCampaignModal from '../../../lib/components/CompleteCampaignModal.svelte';
 	import { goto } from '$app/navigation';
 	import ProfileEditor from '../../../lib/components/ProfileEditor.svelte';
+	import { editUserInfo } from '$lib/firestore.js';
 	export let data;
 
 	// Destructure the userProfile from the data prop
-	const { userProfile } = data;
-	console.log(data);
+	let userProfile = data.userProfile;
+	const params = data.params;
+	console.log($userInfo);
 
 	// Set default values
 	let isInfluencer = userProfile.userType === 'influencer';
@@ -32,12 +34,40 @@
 		console.log('trying to close');
 	};
 
-	const handleModalSubmit = (data) => {
-		console.log('Submitted data:', data);
-		// Example logic to handle the submitted data
-		// Save the data to your database (e.g., Firebase)
-		// You can adjust this function to save the data as needed
-	};
+	$: console.log($userInfo); // This logs the updated userInfo to the console
+
+	function handleModalSubmit({ rating, NewEarnings, review, NewPosts }) {
+		console.log($userInfo.ratings);
+		userInfo.update((currentInfo) => ({
+			...currentInfo,
+			earnings: Number(currentInfo.earnings || 0) + Number(NewEarnings),
+			numPosts: Number(currentInfo.numPosts || 0) + Number(NewPosts),
+			earningsHistory: [...(userProfile.earningsHistory || []), NewEarnings],
+			postsHistory: [...(userProfile.postsHistory || []), NewPosts]
+		}));
+		console.log($userInfo);
+		editUserInfo($userInfo.uid, $userInfo);
+
+		// Assuming userProfile is a regular object, not a Svelte store
+		userProfile = {
+			...userProfile, // Spread the existing properties
+			uid: params.id, // Update the uid
+			ratings: [...(userProfile.ratings || []), rating], // Add the new rating to the array
+			reviews: [
+				...(userProfile.reviews || []),
+				{
+					review: review,
+					reviewerName: $userInfo.name,
+					reviewerEmail: $userInfo.email,
+					reviewerProfile: $userInfo.profilePicture
+				}
+			] // Add the new review to the array
+		};
+
+		// If you need to reflect these changes in a reactive Svelte context, you would need to assign the updated object
+
+		editUserInfo(params.id, userProfile);
+	}
 </script>
 
 {#if !isBusiness}

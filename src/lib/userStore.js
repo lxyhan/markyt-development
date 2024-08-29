@@ -23,6 +23,12 @@ export const userInfo = writable({
 	accountSize: '',
 	engagementRate: '',
 	accountCategories: [],
+	ratings: [],
+	earnings: 0,
+	numPosts: 0,
+	earningsHistory: [],
+	postsHistory: [],
+	reviews: [],
 	userType: '' // 'business' or 'influencer'
 });
 
@@ -47,6 +53,12 @@ export const resetUserInfo = () => {
 		accountSize: '',
 		engagementRate: '',
 		accountCategories: [],
-		userType: ''
+		userType: '',
+		earningsHistory: [],
+		postsHistory: [],
+		ratings: [],
+		earnings: [],
+		numPosts: [],
+		reviews: []
 	});
 };

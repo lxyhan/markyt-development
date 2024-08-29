@@ -10,6 +10,8 @@
 	import Analytics from '../../lib/components/Analytics.svelte';
 	import PaymentPortal from '../../lib/components/PaymentPortal.svelte';
 
+	console.log($userInfo);
+
 	// Fetch user information on mount
 	onMount(() => {
 		authStateListener(async (user) => {
@@ -20,7 +22,13 @@
 					userInfo.set({
 						...fetchedUserInfo,
 						uid: user.uid,
-						email: user.email
+						email: user.email,
+						earnings: fetchedUserInfo.earnings,
+						earningsHistory: fetchedUserInfo.earningsHistory,
+						numPosts: fetchedUserInfo.numPosts,
+						postsHistory: fetchedUserInfo.postsHistory,
+						ratings: fetchedUserInfo.ratings,
+						reviews: fetchedUserInfo.reviews
 					});
 					// console.log('User Type:', $userInfo);
 				} catch (error) {
@@ -42,23 +50,24 @@
 		<span class="loading loading-spinner loading-xl text-emerald-600"></span>
 	</div>
 {:else}
-	<main class="grid grid-cols-1 md:grid-cols-2 gap-6">
+	<main class="grid grid-cols-1 md:grid-cols-7 gap-6">
 		<!-- Shared component for both user types -->
-		<div class="col-span-1 md:col-span-2">
+		<div class="col-span-7 pr-10">
 			{#if $userInfo.userType === 'business'}
 				<BusinessProfileEditor />
 			{:else if $userInfo.userType === 'influencer'}
 				<ProfileEditor />
 			{/if}
 		</div>
+
 		{#if $userInfo.profileComplete === true}
-			<!-- Conditional components based on user type -->
-			<div class="col-span-1">
+			<!-- Matches Component taking up 2 out of 6 columns -->
+			<div class="col-span-6 md:col-span-3">
 				<Matches></Matches>
 			</div>
 
-			<!-- Shared component for both user types -->
-			<div class="col-span-1 lg:col-start-2 lg:col-span-1 p-4 max-w-full lg:max-w-[90%]">
+			<!-- Analytics Component taking up 4 out of 6 columns -->
+			<div class="col-span-6 md:col-span-4 pr-20 pl-10 max-w-full">
 				<Analytics />
 			</div>
 		{/if}

@@ -4,22 +4,21 @@
 	import { getUserInfo, editUserInfo } from '$lib/firestore.js';
 	import { goto } from '$app/navigation';
 	import { uploadProfilePicture } from '$lib/storage.js';
-	import { userInfo, resetUserInfo, loading } from '$lib/userStore.js';
+	import { userInfo, resetUserInfo } from '$lib/userStore.js';
 	import { get } from 'svelte/store';
-	import { afterUpdate } from 'svelte';
 
-	let file; // File variable for the selected image
-	let fileInput; // Reference for the hidden file input
-	let fileType; // To distinguish between profilePicture and bannerPicture
-
-	// console.log('initial data state', $userInfo);
+	let loading = true;
+	let profileFile; // File variable for the selected profile image
+	let bannerFile; // File variable for the selected banner image
+	let profileFileInput; // Reference for the hidden profile file input
+	let bannerFileInput; // Reference for the hidden banner file input
 
 	// Function to handle logout
 	const handleLogout = async () => {
 		try {
 			await logout();
-			console.log($userInfo);
-			goto('/login'); // Redirect to login page
+			resetUserInfo();
+			goto('/login');
 		} catch (error) {
 			console.error('Error during logout:', error);
 		}
@@ -28,7 +27,9 @@
 	// Protect the dashboard and fetch user info
 	onMount(() => {
 		authStateListener(async (user) => {
-			if (user) {
+			if (!user) {
+				goto('/login');
+			} else {
 				try {
 					const fetchedUserInfo = await getUserInfo(user.uid);
 
@@ -38,101 +39,104 @@
 						niche: fetchedUserInfo.businessInfo?.niche,
 						profileComplete: fetchedUserInfo.profileComplete ?? false
 					});
-					// console.log('Immediately after setting $userInfo:', $userInfo);
-
-					// Logging the updated store values
-					// console.log('Updated $userInfo:', $userInfo);
 				} catch (error) {
-					// console.error('Error fetching user info:', error);
+					console.error('Error fetching user info:', error);
 				} finally {
-					$loading = false; // Set loading to false after data is fetched
+					loading = false;
 				}
-			} else {
-				goto('/login');
 			}
 		});
 	});
-	console.log('Updated $userInfo outside scope:', $userInfo);
 
-	// Function to handle file selection (works for both profile and banner images)
-	const handleFileChange = (event) => {
-		file = event.target.files[0];
-		if (file) {
-			const previewUrl = URL.createObjectURL(file);
-			console.log('File Type:', fileType); // Debugging line
-			console.log('Preview URL:', previewUrl); // Debugging line
-
-			// Immediately update the userInfo store with the local preview URL
-			if (fileType === 'profilePicture') {
-				userInfo.update((info) => ({
-					...info,
-					profilePicture: previewUrl
-				}));
-			} else if (fileType === 'bannerPicture') {
-				userInfo.update((info) => ({
-					...info,
-					bannerPicture: previewUrl
-				}));
-			}
-			console.log('Updated userIwnfo:', get(userInfo)); // Debugging line
+	// Function to handle profile picture selection
+	const handleProfileFileChange = (event) => {
+		profileFile = event.target.files[0];
+		if (profileFile) {
+			const previewUrl = URL.createObjectURL(profileFile);
+			userInfo.update((info) => ({
+				...info,
+				profilePicture: previewUrl
+			}));
+			console.log('Profile picture selected:', profileFile);
 		}
 	};
 
-	// Trigger file input click (works for both profile and banner images)
-	const triggerFileInput = (type) => {
-		fileType = type; // Set the type to know which image is being uploaded
-		console.log('Triggering file input for:', fileType); // Debugging line
-		fileInput.click();
+	// Function to handle banner picture selection
+	const handleBannerFileChange = (event) => {
+		bannerFile = event.target.files[0];
+		if (bannerFile) {
+			const previewUrl = URL.createObjectURL(bannerFile);
+			userInfo.update((info) => ({
+				...info,
+				bannerPicture: previewUrl
+			}));
+			console.log('Banner picture selected:', bannerFile);
+		}
+	};
+
+	// Trigger file input for profile picture
+	const triggerProfileFileInput = () => {
+		profileFileInput.click();
+	};
+
+	// Trigger file input for banner picture
+	const triggerBannerFileInput = () => {
+		bannerFileInput.click();
 	};
 
 	// Save function to send data to Firebase
 	const handleSaveProfile = async () => {
 		try {
-			$loading = true; // Start loading before save operation
+			loading = true;
 
-			let updatedUserInfo = get(userInfo); // Get the current userInfo data from the store
+			let updatedUserInfo = get(userInfo);
 
-			// Check if there's a new profile picture to upload
-			if (file && fileType === 'profilePicture') {
-				const downloadURL = await uploadProfilePicture(updatedUserInfo.uid, file, 'profilePicture');
-				updatedUserInfo = { ...updatedUserInfo, profilePicture: downloadURL };
+			// Upload profile picture if selected
+			if (profileFile) {
+				const profileDownloadURL = await uploadProfilePicture(
+					updatedUserInfo.uid,
+					profileFile,
+					'profilePicture'
+				);
+				updatedUserInfo.profilePicture = profileDownloadURL;
 			}
 
-			// Check if there's a new banner image to upload
-			if (file && fileType === 'bannerPicture') {
+			// Upload banner picture if selected
+			if (bannerFile) {
 				const bannerDownloadURL = await uploadProfilePicture(
 					updatedUserInfo.uid,
-					file,
+					bannerFile,
 					'bannerPicture'
 				);
-				updatedUserInfo = { ...updatedUserInfo, bannerPicture: bannerDownloadURL };
+				updatedUserInfo.bannerPicture = bannerDownloadURL;
 			}
 
-			// Update profileComplete status
-			updatedUserInfo = { ...updatedUserInfo, profileComplete: true };
+			updatedUserInfo = {
+				...updatedUserInfo,
+				ratings: updatedUserInfo.ratings || [],
+				earnings: updatedUserInfo.earnings || 0,
+				numPosts: updatedUserInfo.numPosts || 0,
+				reviews: updatedUserInfo.reviews || [],
+				earningsHistory: updatedUserInfo.earningsHistory || [],
+				postsHistory: updatedUserInfo.earningsHistory || []
+			};
 
-			// Save the updated userInfo to Firestore
-			await editUserInfo(updatedUserInfo.uid, updatedUserInfo); // Pass the updated userInfo object to Firebase
+			updatedUserInfo.profileComplete = true;
 
-			// Update the store with the new data
 			userInfo.set(updatedUserInfo);
 
+			await editUserInfo(updatedUserInfo.uid, updatedUserInfo);
 			console.log('Profile saved successfully:', updatedUserInfo);
 		} catch (error) {
 			console.error('Error saving profile:', error);
 		} finally {
-			$loading = false; // Stop loading after save operation
+			loading = false;
 		}
 	};
 
 	const handleEditClick = () => {
 		userInfo.update((info) => ({ ...info, profileComplete: false }));
 	};
-	console.log('final data state', $userInfo.socialMediaHandles);
-
-	afterUpdate(() => {
-		console.log('Updated $userInfo after update:', $userInfo);
-	});
 </script>
 
 <div>
@@ -441,7 +445,7 @@
 										<button
 											type="button"
 											class="rounded-md bg-white px-2.5 py-1.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
-											on:click={() => triggerFileInput('profilePicture')}
+											on:click={() => triggerProfileFileInput('profilePicture')}
 										>
 											Change
 										</button>
@@ -449,9 +453,9 @@
 										<input
 											type="file"
 											accept="image/*"
-											on:change={handleFileChange}
+											on:change={handleProfileFileChange}
 											class="hidden"
-											bind:this={fileInput}
+											bind:this={profileFileInput}
 										/>
 									</div>
 								</div>
@@ -467,7 +471,7 @@
 										<button
 											type="button"
 											class="rounded-md bg-emerald-700 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500"
-											on:click={() => triggerFileInput('bannerPicture')}
+											on:click={() => triggerBannerFileInput('bannerPicture')}
 										>
 											Change Cover Photo
 										</button>
@@ -476,6 +480,13 @@
 										class="mt-2 flex justify-center items-center rounded-lg border border-dashed border-gray-300 p-6 h-64"
 										style="background-image: url({$userInfo.bannerPicture}); background-size: cover; background-position: center;"
 									></div>
+									<input
+										type="file"
+										accept="image/*"
+										on:change={handleBannerFileChange}
+										class="hidden"
+										bind:this={bannerFileInput}
+									/>
 								</div>
 							</div>
 						</div>

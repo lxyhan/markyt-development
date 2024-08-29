@@ -26,7 +26,7 @@
 				// Filter businesses that have the influencer in their matches
 				matches = businessMatches;
 			}
-
+			console.log(matches);
 			if (matches.length === 0) {
 				console.log('No matches found');
 			} else {
@@ -63,10 +63,35 @@
 			}
 		});
 	});
+
+	// Function to calculate the average rating from an array of ratings
+	function calculateAverageRating(ratings) {
+		if (!ratings || ratings.length === 0) return 0;
+		const total = ratings.reduce((sum, rating) => sum + rating, 0);
+		return total / ratings.length;
+	}
+
+	// Function to calculate the star percentage based on the average rating
+	function getStarPercentage(average) {
+		return (average / 5) * 100;
+	}
 </script>
 
 {#if loading}
-	<p>Loading matches...</p>
+	<ul role="list" class="divide-y divide-gray-100 pl-10">
+		{#each Array(5).fill(0) as _, i}
+			<li class="flex gap-x-6 py-5">
+				<div class="flex items-center gap-4">
+					<div class="skeleton h-12 w-12 rounded-full"></div>
+				</div>
+				<div class="flex-1">
+					<div class="skeleton h-6 w-3/4 mb-2"></div>
+					<div class="skeleton h-4 w-1/2 mb-2"></div>
+					<div class="skeleton h-4 w-1/4"></div>
+				</div>
+			</li>
+		{/each}
+	</ul>
 {:else}
 	<div class="pl-10">
 		<div class="indicator flex items-center">
@@ -78,8 +103,8 @@
 		</div>
 
 		<ul role="list" class="divide-y divide-gray-100">
-			{#each matches as match}
-				<li class="flex justify-between gap-x-6 py-5">
+			{#each matches as match, i}
+				<li class="flex flex-col gap-x-6 py-5">
 					<a
 						href={`/users/${match.id}`}
 						class="flex min-w-0 gap-x-4 flex-1 items-center hover:bg-gray-50 p-2 rounded-md"
@@ -91,8 +116,34 @@
 							alt={match.name}
 						/>
 						<div class="min-w-0 flex-auto">
-							<p class="text-sm font-semibold leading-6 text-gray-900">{match.name}</p>
-							<p class="mt-1 truncate text-xs leading-5 text-gray-500">{match.email}</p>
+							<p class="text font-semibold leading-6 text-gray-900">{match.name}</p>
+							<p class="mt-1 truncate text-sm leading-5 text-gray-500">{match.email}</p>
+
+							<div class="mt-2 text-xs text-gray-500 space-y-1">
+								{#if $userInfo.userType == 'business'}
+									<p>Posts: <span class="text-gray-900">{match.numPosts || 0}</span></p>
+								{/if}
+								<p>
+									Reviews: <span class="text-gray-900">
+										{(match.reviews || []).length > 0 ? match.reviews.length : 'No reviews'}
+									</span>
+								</p>
+								<div class="flex items-center">
+									<p>
+										Rating: <span class="text-gray-900"
+											>{calculateAverageRating(match.ratings || []).toFixed(1)}</span
+										>
+									</p>
+									<div class="stars-outer ml-2">
+										<div
+											class="stars-inner"
+											style="width: {getStarPercentage(
+												calculateAverageRating(match.ratings || [])
+											)}%"
+										></div>
+									</div>
+								</div>
+							</div>
 						</div>
 						<div class="hidden shrink-0 sm:flex sm:flex-col sm:items-end">
 							<p class="text-sm leading-6 text-gray-900">
@@ -103,12 +154,35 @@
 							</p>
 						</div>
 					</a>
+
+					<!-- Dropdown for Reviews -->
+					<div class="mt-2">
+						<button
+							type="button"
+							class="text-blue-600 text-xs"
+							on:click={() => document.getElementById(`reviews-${i}`).classList.toggle('hidden')}
+						>
+							View Reviews
+						</button>
+
+						<ul id={`reviews-${i}`} class="hidden mt-2 space-y-2">
+							{#each match.reviews || [] as review}
+								<li class="text-xs text-gray-600 bg-gray-100 p-2 rounded-md">
+									{review.review} - Review from {review.reviewer}
+								</li>
+							{/each}
+
+							{#if (match.reviews || []).length === 0}
+								<li class="text-xs text-gray-500">No reviews available.</li>
+							{/if}
+						</ul>
+					</div>
 				</li>
 			{/each}
 		</ul>
 
 		{#if matches.length === 0}
-			<p>No matches available.</p>
+			<p class="pl-2">No matches available as of this time. Check back later!</p>
 		{/if}
 	</div>
 {/if}
