@@ -7,6 +7,7 @@
 
 	let matches = [];
 	let loading = true;
+	export let openPaymentModal;
 
 	// Function to fetch or create matches
 	const handleMatches = async () => {
@@ -75,6 +76,8 @@
 	function getStarPercentage(average) {
 		return (average / 5) * 100;
 	}
+
+	console.log($userInfo.subscriptionActive);
 </script>
 
 {#if loading}
@@ -105,55 +108,108 @@
 		<ul role="list" class="divide-y divide-gray-100">
 			{#each matches as match, i}
 				<li class="flex flex-col gap-x-6 py-5">
-					<a
-						href={`/users/${match.id}`}
-						class="flex min-w-0 gap-x-4 flex-1 items-center hover:bg-gray-50 p-2 rounded-md"
-					>
-						<img
-							class="h-12 w-12 flex-none rounded-full bg-gray-50"
-							src={match.profilePicture ||
-								'https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80'}
-							alt={match.name}
-						/>
-						<div class="min-w-0 flex-auto">
-							<p class="text font-semibold leading-6 text-gray-900">{match.name}</p>
-							<p class="mt-1 truncate text-sm leading-5 text-gray-500">{match.email}</p>
+					{#if $userInfo.subscriptionActive}
+						<a
+							href={`/users/${match.id}`}
+							class="flex min-w-0 gap-x-4 flex-1 items-center hover:bg-gray-50 p-2 rounded-md"
+						>
+							<!-- Content here remains the same -->
+							<img
+								class="h-12 w-12 flex-none rounded-full bg-gray-50"
+								src={match.profilePicture ||
+									'https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80'}
+								alt={match.name}
+							/>
+							<div class="min-w-0 flex-auto">
+								<p class="text font-semibold leading-6 text-gray-900">{match.name}</p>
+								<p class="mt-1 truncate text-sm leading-5 text-gray-500">{match.email}</p>
 
-							<div class="mt-2 text-xs text-gray-500 space-y-1">
-								{#if $userInfo.userType == 'business'}
-									<p>Posts: <span class="text-gray-900">{match.numPosts || 0}</span></p>
-								{/if}
-								<p>
-									Reviews: <span class="text-gray-900">
-										{(match.reviews || []).length > 0 ? match.reviews.length : 'No reviews'}
-									</span>
-								</p>
-								<div class="flex items-center">
+								<div class="mt-2 text-xs text-gray-500 space-y-1">
+									{#if $userInfo.userType == 'business'}
+										<p>Posts: <span class="text-gray-900">{match.numPosts || 0}</span></p>
+									{/if}
 									<p>
-										Rating: <span class="text-gray-900"
-											>{calculateAverageRating(match.ratings || []).toFixed(1)}</span
-										>
+										Reviews: <span class="text-gray-900">
+											{(match.reviews || []).length > 0 ? match.reviews.length : 'No reviews'}
+										</span>
 									</p>
-									<div class="stars-outer ml-2">
-										<div
-											class="stars-inner"
-											style="width: {getStarPercentage(
-												calculateAverageRating(match.ratings || [])
-											)}%"
-										></div>
+									<div class="flex items-center">
+										<p>
+											Rating: <span class="text-gray-900"
+												>{calculateAverageRating(match.ratings || []).toFixed(1)}</span
+											>
+										</p>
+										<div class="stars-outer ml-2">
+											<div
+												class="stars-inner"
+												style="width: {getStarPercentage(
+													calculateAverageRating(match.ratings || [])
+												)}%"
+											></div>
+										</div>
 									</div>
 								</div>
 							</div>
-						</div>
-						<div class="hidden shrink-0 sm:flex sm:flex-col sm:items-end">
-							<p class="text-sm leading-6 text-gray-900">
-								{$userInfo.userType === 'influencer' ? 'Business' : 'Influencer'}
-							</p>
-							<p class="mt-1 text-xs leading-5 text-gray-500">
-								{match.city}, {match.province}
-							</p>
-						</div>
-					</a>
+							<div class="hidden shrink-0 sm:flex sm:flex-col sm:items-end">
+								<p class="text-sm leading-6 text-gray-900">
+									{$userInfo.userType === 'influencer' ? 'Business' : 'Influencer'}
+								</p>
+								<p class="mt-1 text-xs leading-5 text-gray-500">{match.city}, {match.province}</p>
+							</div>
+						</a>
+					{:else}
+						<!-- svelte-ignore a11y-click-events-have-key-events -->
+						<!-- svelte-ignore a11y-no-static-element-interactions -->
+						<!-- svelte-ignore a11y-missing-attribute -->
+						<a
+							on:click={openPaymentModal}
+							class="flex min-w-0 gap-x-4 flex-1 items-center hover:bg-gray-50 p-2 rounded-md"
+						>
+							<!-- Content here remains the same -->
+							<img
+								class="h-12 w-12 flex-none rounded-full bg-gray-50"
+								src={match.profilePicture ||
+									'https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80'}
+								alt={match.name}
+							/>
+							<div class="min-w-0 flex-auto">
+								<p class="text font-semibold leading-6 text-gray-900">{match.name}</p>
+								<p class="mt-1 truncate text-sm leading-5 text-gray-500">{match.email}</p>
+
+								<div class="mt-2 text-xs text-gray-500 space-y-1">
+									{#if $userInfo.userType == 'business'}
+										<p>Posts: <span class="text-gray-900">{match.numPosts || 0}</span></p>
+									{/if}
+									<p>
+										Reviews: <span class="text-gray-900">
+											{(match.reviews || []).length > 0 ? match.reviews.length : 'No reviews'}
+										</span>
+									</p>
+									<div class="flex items-center">
+										<p>
+											Rating: <span class="text-gray-900"
+												>{calculateAverageRating(match.ratings || []).toFixed(1)}</span
+											>
+										</p>
+										<div class="stars-outer ml-2">
+											<div
+												class="stars-inner"
+												style="width: {getStarPercentage(
+													calculateAverageRating(match.ratings || [])
+												)}%"
+											></div>
+										</div>
+									</div>
+								</div>
+							</div>
+							<div class="hidden shrink-0 sm:flex sm:flex-col sm:items-end">
+								<p class="text-sm leading-6 text-gray-900">
+									{$userInfo.userType === 'influencer' ? 'Business' : 'Influencer'}
+								</p>
+								<p class="mt-1 text-xs leading-5 text-gray-500">{match.city}, {match.province}</p>
+							</div>
+						</a>
+					{/if}
 
 					<!-- Dropdown for Reviews -->
 					<div class="mt-2">
@@ -168,7 +224,7 @@
 						<ul id={`reviews-${i}`} class="hidden mt-2 space-y-2">
 							{#each match.reviews || [] as review}
 								<li class="text-xs text-gray-600 bg-gray-100 p-2 rounded-md">
-									{review.review} - Review from {review.reviewer}
+									{review.review} - Review from {review.reviewerEmail}
 								</li>
 							{/each}
 

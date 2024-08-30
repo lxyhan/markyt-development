@@ -27,6 +27,7 @@
 	// Protect the dashboard and fetch user info
 	onMount(() => {
 		authStateListener(async (user) => {
+			console.log($userInfo);
 			if (user) {
 				try {
 					const fetchedUserInfo = await getUserInfo(user.uid);
@@ -125,6 +126,7 @@
 			updatedUserInfo.profileComplete = true;
 
 			userInfo.set(updatedUserInfo);
+			console.log($userInfo);
 
 			await editUserInfo(updatedUserInfo.uid, updatedUserInfo);
 			console.log('Profile saved successfully:', updatedUserInfo);
@@ -134,6 +136,7 @@
 			loading = false;
 		}
 	};
+	console.log($userInfo);
 
 	const handleEditClick = () => {
 		userInfo.update((info) => ({ ...info, profileComplete: false }));

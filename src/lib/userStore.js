@@ -11,7 +11,6 @@ export const userInfo = writable({
 	profileComplete: false,
 	profilePicture: '',
 	bannerPicture: '',
-
 	province: '',
 	city: '',
 	postalCode: '',
@@ -29,7 +28,8 @@ export const userInfo = writable({
 	earningsHistory: [],
 	postsHistory: [],
 	reviews: [],
-	userType: '' // 'business' or 'influencer'
+	userType: '', // 'business' or 'influencer'
+	subscriptionActive: false
 });
 
 // Function to reset userInfo

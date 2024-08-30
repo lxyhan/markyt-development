@@ -71,7 +71,8 @@ export const editUserInfo = async (userId, userInfo) => {
 				numPosts: userInfo.numPosts || 0,
 				reviews: userInfo.reviews || [],
 				earningsHistory: userInfo.earningsHistory || [],
-				postsHistory: userInfo.postsHistory || []
+				postsHistory: userInfo.postsHistory || [],
+				subscriptionActive: userInfo.subscriptionActive || false
 			},
 			{ merge: true }
 		);

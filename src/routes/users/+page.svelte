@@ -3,6 +3,7 @@
 	import { authStateListener } from '$lib/auth.js';
 	import { userInfo, loading } from '$lib/userStore.js';
 	import { getUserInfo } from '$lib/firestore.js';
+	import { goto } from '$app/navigation.js';
 	import ProfileEditor from '../../lib/components/ProfileEditor.svelte';
 	import ConnectedSocialMedia from '../../lib/components/ConnectedSocialMedia.svelte';
 	import BusinessProfileEditor from '../../lib/components/BusinessProfileEditor.svelte';
@@ -10,7 +11,7 @@
 	import Analytics from '../../lib/components/Analytics.svelte';
 	import PaymentPortal from '../../lib/components/PaymentPortal.svelte';
 
-	console.log($userInfo);
+	let showPaywallModal = false;
 
 	// Fetch user information on mount
 	onMount(() => {
@@ -43,6 +44,23 @@
 		});
 	});
 	console.log('User Info:', $userInfo);
+
+	const openPaymentModal = () => {
+		console.log($userInfo);
+		if ($userInfo.userType === 'business' && !$userInfo.subscriptionActive) {
+			// If the user is a business and not subscribed, show the paywall modal
+			showPaywallModal = true;
+		}
+	};
+
+	function onClose() {
+		showPaywallModal = false;
+		console.log('clicked');
+	}
+
+	function onSubscribe() {
+		goto('/checkout');
+	}
 </script>
 
 {#if $loading}
@@ -50,6 +68,9 @@
 		<span class="loading loading-spinner loading-xl text-emerald-600"></span>
 	</div>
 {:else}
+	{#if showPaywallModal}
+		<PaymentPortal {onClose} {onSubscribe}></PaymentPortal>
+	{/if}
 	<main class="grid grid-cols-1 md:grid-cols-7 gap-6">
 		<!-- Shared component for both user types -->
 		<div class="col-span-7 pr-10">
@@ -63,7 +84,7 @@
 		{#if $userInfo.profileComplete === true}
 			<!-- Matches Component taking up 2 out of 6 columns -->
 			<div class="col-span-6 md:col-span-3">
-				<Matches></Matches>
+				<Matches {openPaymentModal}></Matches>
 			</div>
 
 			<!-- Analytics Component taking up 4 out of 6 columns -->

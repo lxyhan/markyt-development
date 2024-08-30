@@ -11,7 +11,6 @@
 	// Destructure the userProfile from the data prop
 	let userProfile = data.userProfile;
 	const params = data.params;
-	console.log($userInfo);
 
 	// Set default values
 	let isInfluencer = userProfile.userType === 'influencer';
