@@ -8,6 +8,11 @@
 	let matches = [];
 	let loading = true;
 	export let openPaymentModal;
+	export let subscribed;
+
+	if (($userInfo.userType = 'influencer')) {
+		subscribed = true;
+	}
 
 	// Function to fetch or create matches
 	const handleMatches = async () => {
@@ -76,8 +81,6 @@
 	function getStarPercentage(average) {
 		return (average / 5) * 100;
 	}
-
-	console.log($userInfo.subscriptionActive);
 </script>
 
 {#if loading}
@@ -108,7 +111,7 @@
 		<ul role="list" class="divide-y divide-gray-100">
 			{#each matches as match, i}
 				<li class="flex flex-col gap-x-6 py-5">
-					{#if $userInfo.subscriptionActive}
+					{#if subscribed || $userInfo.subscriptionActive}
 						<a
 							href={`/users/${match.id}`}
 							class="flex min-w-0 gap-x-4 flex-1 items-center hover:bg-gray-50 p-2 rounded-md"

@@ -8,10 +8,20 @@
 		PointElement,
 		LinearScale,
 		Title,
-		CategoryScale
+		CategoryScale,
+		Filler
 	} from 'chart.js';
 
-	Chart.register(LineController, LineElement, PointElement, LinearScale, Title, CategoryScale);
+	Chart.register(
+		LineController,
+		LineElement,
+		PointElement,
+		LinearScale,
+		Title,
+		CategoryScale,
+		Filler
+	);
+	Chart.defaults.font.family = 'Arial';
 
 	let earnings = $userInfo.earnings || 0;
 	let ratings = $userInfo.ratings || [];
@@ -44,6 +54,43 @@
 			behavior: 'smooth'
 		});
 	}
+	let isPostsCumulative = false;
+	let isEarningsCumulative = false;
+
+	function calculateCumulativeData(data) {
+		let cumulativeSum = 0;
+		return data.map((value) => {
+			cumulativeSum += parseInt(value, 10); // Convert the string to an integer
+			return cumulativeSum;
+		});
+	}
+
+	function updateCharts() {
+		console.log(calculateCumulativeData($userInfo.postsHistory));
+		console.log($userInfo.postsHistory);
+		console.log(calculateCumulativeData($userInfo.earningsHistory));
+		console.log($userInfo.earningsHistory);
+
+		chart1.data.datasets[0].data = isPostsCumulative
+			? calculateCumulativeData($userInfo.postsHistory)
+			: $userInfo.postsHistory;
+		chart2.data.datasets[0].data = isEarningsCumulative
+			? calculateCumulativeData($userInfo.earningsHistory)
+			: $userInfo.earningsHistory;
+
+		// Update chart1 title
+		chart1.options.plugins.title.text = isPostsCumulative
+			? 'User Posts Over Time'
+			: 'User Posts by Campaign';
+
+		// Update chart2 title
+		chart2.options.plugins.title.text = isEarningsCumulative
+			? 'User Earnings Over Time'
+			: 'User Earnings by Campaign';
+
+		chart1.update();
+		chart2.update();
+	}
 
 	onMount(() => {
 		const ctx1 = document.getElementById('postsChart').getContext('2d');
@@ -52,14 +99,14 @@
 		chart1 = new Chart(ctx1, {
 			type: 'line',
 			data: {
-				labels: $userInfo.postsHistory.map((_, index) => `Post ${index + 1}`),
+				labels: $userInfo.postsHistory.map((_, index) => `${index + 1}`),
 				datasets: [
 					{
 						label: 'Posts History',
 						data: $userInfo.postsHistory,
-						borderColor: 'rgba(99, 102, 241, 1)', // Tailwind's indigo-500
-						backgroundColor: 'rgba(99, 102, 241, 0.2)', // Tailwind's indigo-500 with opacity
-						fill: true,
+						borderColor: 'rgba(0, 153, 76, 1)', // Line color
+						backgroundColor: 'rgba(0, 153, 76, 0.2)', // Fill color under the line (Tailwind's indigo-500 with opacity)
+						fill: true, // Enable filling under the line
 						pointBackgroundColor: 'rgba(99, 102, 241, 1)',
 						pointBorderColor: '#fff',
 						pointHoverBackgroundColor: '#fff',
@@ -69,10 +116,10 @@
 				]
 			},
 			options: {
-				aspectRatio: 1, // Ensures the chart is square
+				maintainAspectRatio: false, // Disable aspect ratio maintenance
 				scales: {
 					x: {
-						title: { display: true, text: 'Posts' }
+						title: { display: true, text: 'Campaign' }
 					},
 					y: {
 						beginAtZero: true,
@@ -83,8 +130,11 @@
 				plugins: {
 					title: {
 						display: true,
-						text: 'User Posts Over Time',
-						color: '#6366f1' // Tailwind's indigo-500
+						text: 'User Posts by Campaign',
+						color: '#808080',
+						font: {
+							family: 'Arial' // Change to 'Arial' as requested
+						}
 					}
 				}
 			}
@@ -93,14 +143,14 @@
 		chart2 = new Chart(ctx2, {
 			type: 'line',
 			data: {
-				labels: $userInfo.earningsHistory.map((_, index) => `Earning ${index + 1}`),
+				labels: $userInfo.earningsHistory.map((_, index) => `${index + 1}`),
 				datasets: [
 					{
 						label: 'Earnings History',
 						data: $userInfo.earningsHistory,
-						borderColor: 'rgba(34, 197, 94, 1)', // Tailwind's green-500
-						backgroundColor: 'rgba(34, 197, 94, 0.2)', // Tailwind's green-500 with opacity
-						fill: true,
+						borderColor: 'rgba(0, 153, 76, 1)', // Line color
+						backgroundColor: 'rgba(0, 153, 76, 0.2)', // Fill color under the line (Tailwind's green-500 with opacity)
+						fill: true, // Enable filling under the line
 						pointBackgroundColor: 'rgba(34, 197, 94, 1)',
 						pointBorderColor: '#fff',
 						pointHoverBackgroundColor: '#fff',
@@ -110,10 +160,10 @@
 				]
 			},
 			options: {
-				aspectRatio: 1, // Ensures the chart is square
+				maintainAspectRatio: false, // Disable aspect ratio maintenance
 				scales: {
 					x: {
-						title: { display: true, text: 'Earnings' }
+						title: { display: true, text: 'Campaign' }
 					},
 					y: {
 						beginAtZero: true,
@@ -124,26 +174,33 @@
 				plugins: {
 					title: {
 						display: true,
-						text: 'User Earnings Over Time',
-						color: '#22c55e' // Tailwind's green-500
+						text: 'User Earnings by Campaign',
+						color: '#808080',
+						font: {
+							family: 'Arial' // Change to 'Arial' as requested
+						}
 					}
 				}
 			}
 		});
 	});
+
+	$: if (isPostsCumulative || isEarningsCumulative) {
+		updateCharts();
+	}
 </script>
 
 <div class="space-y-8">
 	<!-- Stats Grid: Responsive Layout -->
 	<div class="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
 		<!-- Row 1: Earnings, Matches, Average Rating, and Posts -->
-		<div class="bg-white overflow-hidden shadow rounded-lg p-6 text-center">
+		<div class="bg-white overflow-hidden shadow rounded-lg p-3 text-center">
 			<div class="text-sm font-medium text-gray-500 truncate">Earnings</div>
 			<div class="mt-1 text-3xl font-semibold text-primary">${earnings}</div>
 			<div class="text-gray-500 mt-2">Earnings from posts</div>
 		</div>
 
-		<div class="bg-white overflow-hidden shadow rounded-lg p-6 text-center">
+		<div class="bg-white overflow-hidden shadow rounded-lg p-3 text-center">
 			<div class="text-sm font-medium text-gray-500 truncate">Matches</div>
 			<div class="mt-1 text-3xl font-semibold text-secondary">{ratings.length}</div>
 			<div class="text-gray-500 mt-2">
@@ -152,7 +209,7 @@
 		</div>
 
 		<div
-			class="sm:col-span-2 lg:col-span-2 bg-white overflow-hidden shadow rounded-lg p-6 text-center"
+			class="sm:col-span-2 lg:col-span-2 bg-white overflow-hidden shadow rounded-lg p-3 text-center"
 		>
 			<div class="text-sm font-medium text-gray-500 truncate">Average Rating</div>
 			<div class="mt-1 text-3xl font-semibold flex justify-center items-center">
@@ -166,12 +223,12 @@
 	</div>
 
 	<div class="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-		<div class="bg-white overflow-hidden shadow rounded-lg p-6 text-center">
+		<div class="bg-white overflow-hidden shadow rounded-lg p-3 text-center">
 			<div class="text-sm font-medium text-gray-500 truncate">Posts</div>
 			<div class="mt-1 text-3xl font-semibold text-accent">{numPosts}</div>
 			<div class="text-gray-500 mt-2">Total posts uploaded</div>
 		</div>
-		<div class="bg-white overflow-hidden shadow rounded-lg p-6 text-center">
+		<div class="bg-white overflow-hidden shadow rounded-lg p-3 text-center">
 			<div class="text-sm font-medium text-gray-500 truncate">Reviews</div>
 			<div class="mt-1 text-3xl font-semibold text-info">{reviews}</div>
 			<div class="text-gray-500 mt-2">Total reviews received</div>
@@ -179,7 +236,7 @@
 
 		<!-- Carousel for Reviews (spanning all columns on small screens, three columns on larger screens) -->
 		<div
-			class="lg:col-span-2 sm:col-span-2 col-span-1 bg-white overflow-hidden shadow rounded-lg p-6"
+			class="lg:col-span-2 sm:col-span-2 col-span-1 bg-white overflow-hidden shadow rounded-lg p-5"
 		>
 			{#if $userInfo.reviews.length === 0}
 				<div class="text-center">
@@ -228,16 +285,52 @@
 	</div>
 
 	<!-- Third Row: Stacked Charts on Smaller Screens, Side-by-Side on Larger Screens -->
-	<div class="grid grid-cols-1 gap-4 mt-8 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-2">
-		<div class="bg-white overflow-hidden shadow rounded-lg p-6">
+	<div class="grid grid-cols-1 gap-4 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-2">
+		<div class="bg-white overflow-hidden shadow rounded-lg p-3">
 			<div class="chart-container">
 				<canvas id="postsChart"></canvas>
 			</div>
+			<div class="switch-container mt-4 flex items-center">
+				<label class="switch-label mr-3">Posts over time</label>
+				<div
+					class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in"
+				>
+					<input
+						type="checkbox"
+						id="togglePosts"
+						class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer"
+						bind:checked={isPostsCumulative}
+						on:change={updateCharts}
+					/>
+					<label
+						for="togglePosts"
+						class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"
+					></label>
+				</div>
+			</div>
 		</div>
 
-		<div class="bg-white overflow-hidden shadow rounded-lg p-6">
+		<div class="bg-white overflow-hidden shadow rounded-lg p-3">
 			<div class="chart-container">
 				<canvas id="earningsChart"></canvas>
+			</div>
+			<div class="switch-container mt-4 flex items-center">
+				<label class="switch-label mr-3">Earnings over time</label>
+				<div
+					class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in"
+				>
+					<input
+						type="checkbox"
+						id="toggleEarnings"
+						class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer"
+						bind:checked={isEarningsCumulative}
+						on:change={updateCharts}
+					/>
+					<label
+						for="toggleEarnings"
+						class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"
+					></label>
+				</div>
 			</div>
 		</div>
 	</div>
@@ -286,5 +379,14 @@
 	}
 	.carousel-item img {
 		border-radius: 50%;
+	}
+
+	.toggle-checkbox:checked {
+		right: 0;
+		border-color: #2f7359; /* Tailwind's indigo-500 */
+	}
+
+	.toggle-checkbox:checked + .toggle-label {
+		background-color: #2f7359; /* Tailwind's indigo-500 */
 	}
 </style>

@@ -12,11 +12,17 @@
 	import PaymentPortal from '../../lib/components/PaymentPortal.svelte';
 
 	let showPaywallModal = false;
+	let subscribed = false;
 
 	// Fetch user information on mount
 	onMount(() => {
 		authStateListener(async (user) => {
 			if (user) {
+				if ($userInfo.userType == 'influencer') {
+					$userInfo.subscriptionActive = true;
+					subscribed = true;
+				}
+
 				try {
 					// Fetch user data and update store
 					const fetchedUserInfo = await getUserInfo(user.uid); // Assuming you have a function to fetch user info
@@ -71,7 +77,7 @@
 	{#if showPaywallModal}
 		<PaymentPortal {onClose} {onSubscribe}></PaymentPortal>
 	{/if}
-	<main class="grid grid-cols-1 md:grid-cols-7 gap-6">
+	<main class="grid grid-cols-1 md:grid-cols-7 gap-6 pb-10">
 		<!-- Shared component for both user types -->
 		<div class="col-span-7 pr-10">
 			{#if $userInfo.userType === 'business'}
@@ -84,7 +90,7 @@
 		{#if $userInfo.profileComplete === true}
 			<!-- Matches Component taking up 2 out of 6 columns -->
 			<div class="col-span-6 md:col-span-3">
-				<Matches {openPaymentModal}></Matches>
+				<Matches {openPaymentModal} {subscribed}></Matches>
 			</div>
 
 			<!-- Analytics Component taking up 4 out of 6 columns -->

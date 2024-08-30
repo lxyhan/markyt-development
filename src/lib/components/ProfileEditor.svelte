@@ -35,8 +35,7 @@
 						...fetchedUserInfo,
 						uid: user.uid,
 						email: user.email,
-						socialMediaHandles: fetchedUserInfo.influencerInfo.socialMediaHandles,
-						niche: fetchedUserInfo.influencerInfo?.niche,
+						influencerInfo: fetchedUserInfo.influencerInfo,
 						profileComplete: fetchedUserInfo.profileComplete ?? false
 					});
 				} catch (error) {
@@ -220,7 +219,7 @@
 								viewBox="0 0 24 24"
 								stroke-width="1.5"
 								stroke="currentColor"
-								class="size-6"
+								class="size-6 pr-1"
 							>
 								<path
 									stroke-linecap="round"
@@ -232,7 +231,7 @@
 							{$userInfo.email}
 						</div>
 						<div class="mt-2 flex items-center text-sm text-gray-500">
-							<svg
+							<!-- <svg
 								xmlns="http://www.w3.org/2000/svg"
 								fill="none"
 								viewBox="0 0 24 24"
@@ -245,9 +244,9 @@
 									stroke-linejoin="round"
 									d="M12 18v-5.25m0 0a6.01 6.01 0 0 0 1.5-.189m-1.5.189a6.01 6.01 0 0 1-1.5-.189m3.75 7.478a12.06 12.06 0 0 1-4.5 0m3.75 2.383a14.406 14.406 0 0 1-3 0M14.25 18v-.192c0-.983.658-1.823 1.508-2.316a7.5 7.5 0 1 0-7.517 0c.85.493 1.509 1.333 1.509 2.316V18"
 								/>
-							</svg>
+							</svg> -->
 
-							{' Niche: ' + $userInfo.influencerInfo.niche}
+							<!-- {' Niche: ' + $userInfo.influencerInfo.niche} -->
 						</div>
 					</div>
 				</div>
@@ -279,6 +278,7 @@
 					<!-- View Button -->
 					<span class="ml-3">
 						<button
+							on:click={() => goto('/overview')}
 							type="button"
 							class="inline-flex items-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
 						>
@@ -325,7 +325,6 @@
 					</span>
 				</div>
 			</div>
-
 			{#if !$userInfo.profileComplete}
 				<div class="py-20 pl-10 pr-10 content" style="margin-top: 125px">
 					<h1
@@ -338,13 +337,14 @@
 							<div class="border-b border-gray-900/10 pb-12">
 								<h2 class="text-base font-semibold leading-7 text-gray-900">Profile</h2>
 								<p class="mt-1 text-sm leading-6 text-gray-600">
-									This information will be displayed publicly so be careful what you share.
+									This information will be displayed publicly, so be careful what you share. The
+									internet remembers everything!
 								</p>
 
 								<div class="mt-10 grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6">
 									<div class="sm:col-span-4">
 										<label for="username" class="block text-sm font-medium leading-6 text-gray-900"
-											>Full Name</label
+											>Full Name <span class="text-red-500">*</span></label
 										>
 										<div class="mt-2">
 											<div
@@ -361,15 +361,19 @@
 													autocomplete="username"
 													required
 													class="block flex-1 border-0 bg-transparent py-1.5 pl-1 text-gray-900 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6"
-													placeholder={userInfo.name}
+													placeholder="Your awesome full name"
 												/>
 											</div>
+											<p class="mt-1 text-xs text-gray-500">
+												Make sure to use your real name—your fans (and brands) want to know who you
+												are!
+											</p>
 										</div>
 									</div>
 
 									<div class="col-span-full">
 										<label for="about" class="block text-sm font-medium leading-6 text-gray-900"
-											>About</label
+											>About <span class="text-red-500">*</span></label
 										>
 										<div class="mt-2">
 											<textarea
@@ -379,16 +383,18 @@
 												rows="3"
 												required
 												class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+												placeholder="Tell the world who you are and what you do"
 											></textarea>
 										</div>
-										<p class="mt-3 text-sm leading-6 text-gray-600">
-											Write a few sentences about yourself.
+										<p class="mt-3 text-xs text-gray-500">
+											Write a few sentences about yourself—this is your chance to make a lasting
+											impression!
 										</p>
 									</div>
 
 									<div class="col-span-full">
 										<label for="photo" class="block text-sm font-medium leading-6 text-gray-900"
-											>Photo</label
+											>Photo <span class="text-red-500">*</span></label
 										>
 										<div class="mt-2 flex items-center gap-x-3">
 											<img
@@ -412,6 +418,9 @@
 												bind:this={profileFileInput}
 											/>
 										</div>
+										<p class="mt-1 text-xs text-gray-500">
+											Smile! This picture will represent you across the platform. Make it count!
+										</p>
 									</div>
 
 									<div class="col-span-full">
@@ -419,9 +428,8 @@
 											<label
 												for="cover-photo"
 												class="block text-sm font-medium leading-6 text-gray-900"
+												>Cover Photo <span class="text-red-500">*</span></label
 											>
-												Cover photo
-											</label>
 											<button
 												type="button"
 												class="rounded-md bg-emerald-700 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500"
@@ -441,6 +449,10 @@
 											class="hidden"
 											bind:this={bannerFileInput}
 										/>
+										<p class="mt-1 text-xs text-gray-500">
+											Your cover photo sets the stage. Make sure it's captivating and true to your
+											brand!
+										</p>
 									</div>
 								</div>
 							</div>
@@ -448,15 +460,15 @@
 							<div class="border-b border-gray-900/10 pb-12">
 								<h2 class="text-base font-semibold leading-7 text-gray-900">Creator Information</h2>
 								<p class="mt-1 text-sm leading-6 text-gray-600">
-									Use a permanent address where you can receive mail.
+									This is where we get to know your social media presence better.
 								</p>
 
 								<div class="mt-10 grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6">
 									<div class="sm:col-span-3">
 										<label
-											for="first-name"
+											for="instagram-handle"
 											class="block text-sm font-medium leading-6 text-gray-900"
-											>Instagram Handle</label
+											>Instagram Handle <span class="text-red-500">*</span></label
 										>
 										<div class="mt-2">
 											<input
@@ -464,33 +476,43 @@
 												required
 												bind:value={$userInfo.influencerInfo.socialMediaHandles}
 												class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+												placeholder="@yourhandle"
 											/>
+											<p class="mt-1 text-xs text-gray-500">
+												Your Instagram handle is your online identity. Choose one that represents
+												you well!
+											</p>
 										</div>
 									</div>
 
 									<div class="sm:col-span-3">
-										<label for="country" class="block text-sm font-medium leading-6 text-gray-900"
-											>Niche</label
+										<label for="niche" class="block text-sm font-medium leading-6 text-gray-900"
+											>Niche <span class="text-red-500">*</span></label
 										>
 										<div class="mt-2">
 											<select
 												bind:value={$userInfo.influencerInfo.niche}
-												id="country"
-												name="country"
+												id="niche"
+												name="niche"
 												required
-												autocomplete="country-name"
+												autocomplete="niche"
 												class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:max-w-xs sm:text-sm sm:leading-6"
 											>
+												<option value="" disabled selected>Select your niche</option>
 												<option>Sports</option>
 												<option>Food</option>
 												<option>Fashion</option>
 											</select>
+											<p class="mt-1 text-xs text-gray-500">
+												Pick your niche carefully. This helps you attract the right followers and
+												brands!
+											</p>
 										</div>
 									</div>
 
 									<div class="sm:col-span-2 sm:col-start-1">
 										<label for="city" class="block text-sm font-medium leading-6 text-gray-900"
-											>City</label
+											>City <span class="text-red-500">*</span></label
 										>
 										<div class="mt-2">
 											<input
@@ -501,13 +523,18 @@
 												required
 												autocomplete="address-level2"
 												class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+												placeholder="City"
 											/>
+											<p class="mt-1 text-xs text-gray-500">
+												Where do you call home? Let your followers know where you’re creating
+												content from!
+											</p>
 										</div>
 									</div>
 
 									<div class="sm:col-span-2">
 										<label for="region" class="block text-sm font-medium leading-6 text-gray-900"
-											>State / Province</label
+											>State / Province <span class="text-red-500">*</span></label
 										>
 										<div class="mt-2">
 											<input
@@ -518,7 +545,11 @@
 												required
 												autocomplete="address-level1"
 												class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+												placeholder="State / Province"
 											/>
+											<p class="mt-1 text-xs text-gray-500">
+												Your state or province is a key detail. Don’t leave your fans guessing!
+											</p>
 										</div>
 									</div>
 
@@ -526,7 +557,7 @@
 										<label
 											for="postal-code"
 											class="block text-sm font-medium leading-6 text-gray-900"
-											>ZIP / Postal code</label
+											>ZIP / Postal code <span class="text-red-500">*</span></label
 										>
 										<div class="mt-2">
 											<input
@@ -537,14 +568,18 @@
 												id="postal-code"
 												autocomplete="postal-code"
 												class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+												placeholder="ZIP / Postal Code"
 											/>
+											<p class="mt-1 text-xs text-gray-500">
+												Ensure your postal code is correct. Who knows, fan mail might start
+												arriving!
+											</p>
 										</div>
 									</div>
 								</div>
 							</div>
 
 							<div class="mt-6 flex items-center justify-end gap-x-6">
-								<!-- <button type="button" class="text-sm font-semibold leading-6 text-gray-900">Cancel</button> -->
 								<button
 									type="submit"
 									class="rounded-md bg-emerald-700 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"

@@ -36,13 +36,15 @@
 	$: console.log($userInfo); // This logs the updated userInfo to the console
 
 	function handleModalSubmit({ rating, NewEarnings, review, NewPosts }) {
-		console.log($userInfo.ratings);
+		console.log(NewEarnings, NewPosts);
+		console.log(NewEarnings, NewPosts);
+
 		userInfo.update((currentInfo) => ({
 			...currentInfo,
 			earnings: Number(currentInfo.earnings || 0) + Number(NewEarnings),
 			numPosts: Number(currentInfo.numPosts || 0) + Number(NewPosts),
-			earningsHistory: [...(userProfile.earningsHistory || []), NewEarnings],
-			postsHistory: [...(userProfile.postsHistory || []), NewPosts]
+			earningsHistory: [...(currentInfo.earningsHistory || []), NewEarnings],
+			postsHistory: [...(currentInfo.postsHistory || []), NewPosts]
 		}));
 		console.log($userInfo);
 		editUserInfo($userInfo.uid, $userInfo);

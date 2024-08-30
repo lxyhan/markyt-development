@@ -6,9 +6,15 @@
 	let NewEarnings;
 	let review;
 	let NewPosts;
+	let errorMessage = '';
+
 	const handleSubmit = () => {
+		if (!rating || !NewEarnings || !review || !NewPosts) {
+			errorMessage = 'Please fill out all fields before submitting!';
+			return;
+		}
+
 		onSubmit({ rating, NewEarnings, review, NewPosts });
-		console.log('Trying to close modal'); // Debugging line
 		onClose(); // Close the modal after submission
 	};
 </script>
@@ -25,7 +31,7 @@
 					Complete Campaign
 				</h3>
 				<!-- Close Button -->
-				<button type="button" on:click={() => handleSubmit()}>
+				<button type="button" on:click={onClose()}>
 					<span class="sr-only">Close</span>
 					<svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 						<path
@@ -38,20 +44,31 @@
 				</button>
 			</div>
 
+			{#if errorMessage}
+				<div class="text-red-500 text-sm mb-4">{errorMessage}</div>
+			{/if}
+
 			<div class="mt-4">
-				<label for="rating" class="block text-sm font-medium text-gray-700">Number of Posts</label>
+				<label for="NewPosts" class="block text-sm font-medium text-gray-700"
+					>Number of Posts <span class="text-red-500">*</span></label
+				>
 				<input
-					id="rating"
+					id="NewPosts"
 					type="number"
 					min="1"
-					max="5"
 					bind:value={NewPosts}
 					class="mt-1 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
+					required
 				/>
+				<p class="text-xs text-gray-500 mt-1">
+					How many glorious posts did you grace the world with?
+				</p>
 			</div>
 
 			<div class="mt-4">
-				<label for="rating" class="block text-sm font-medium text-gray-700">Rating</label>
+				<label for="rating" class="block text-sm font-medium text-gray-700"
+					>Rating <span class="text-red-500">*</span></label
+				>
 				<input
 					id="rating"
 					type="number"
@@ -59,33 +76,47 @@
 					max="5"
 					bind:value={rating}
 					class="mt-1 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
+					required
 				/>
+				<p class="text-xs text-gray-500 mt-1">
+					On a scale of 1 to 5, how awesome was this campaign?
+				</p>
 			</div>
 
 			<div class="mt-4">
-				<label for="earnings" class="block text-sm font-medium text-gray-700">Earnings</label>
+				<label for="NewEarnings" class="block text-sm font-medium text-gray-700"
+					>Earnings <span class="text-red-500">*</span></label
+				>
 				<input
-					id="earnings"
+					id="NewEarnings"
 					type="text"
 					bind:value={NewEarnings}
 					class="mt-1 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
+					required
 				/>
+				<p class="text-xs text-gray-500 mt-1">How much did you earn? Yes, brag a little!</p>
 			</div>
 
 			<div class="mt-4">
-				<label for="review" class="block text-sm font-medium text-gray-700">Review</label>
+				<label for="review" class="block text-sm font-medium text-gray-700"
+					>Review <span class="text-red-500">*</span></label
+				>
 				<textarea
 					id="review"
 					bind:value={review}
 					rows="3"
 					class="mt-1 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
+					required
 				></textarea>
+				<p class="text-xs text-gray-500 mt-1">
+					What did you think? Pour your heart out, but keep it professional... or not.
+				</p>
 			</div>
 
 			<div class="mt-5 sm:mt-6">
 				<button
 					type="button"
-					class="inline-flex justify-center w-full rounded-md border border-transparent shadow-sm px-4 py-2 bg-emerald-600 text-base font-medium text-white hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:text-sm"
+					class="inline-flex justify-center w-full rounded-md border border-transparent shadow-sm px-4 py-2 bg-emerald-600 text-base font-medium text-white hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 sm:text-sm"
 					on:click={handleSubmit}
 				>
 					Submit
