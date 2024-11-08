@@ -1,2 +1,3 @@
 # markyt-development
  
+As a the lead developer at Markyt, my work involved building and maintaining a web app using industry standard practices, implementing Stripe payment integration, and ensuring proper user authentication protocols. Working with SvelteKit and Firebase (storage, firestore, auth) tools have allowed me to speed up development immensely without sacrificing the scalability and quality of my code. In the past few months I've gained a solid understanding of the challenges of real-time state management in front-end design aided by Tailwind CSS, Daisy UI, and Chart JS. I've also worked extensively with webhooks, securing api routes, and back-end server side integration.
